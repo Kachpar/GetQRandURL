@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Stylish Upload with QR</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f3d9fa, #d3f4ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 2rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      padding: 2rem;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      margin: 1rem 0;
+    }
+
+    h2 {
+      color: white;
+      text-shadow: 0 0 8px #00000080;
+      margin-bottom: 2rem;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: left;
+      width: 100%;
+      margin: 0.8rem 0;
+      padding: 0.9rem 1rem;
+      font-size: 1rem;
+      font-weight: 500;
+      background-color: white;
+      border: none;
+      border-radius: 20px;
+      position: relative;
+      cursor: pointer;
+      transition: transform 0.2s;
+      gap: 10px;
+    }
+
+    .btn::after {
+      content: '';
+      position: absolute;
+      top: -2px; bottom: -2px; left: -2px; right: -2px;
+      border-radius: inherit;
+      background: radial-gradient(circle at top left, #ff00ff, #00ffff);
+      filter: blur(3px);
+      z-index: -1;
+      opacity: 0.6;
+    }
+
+    .btn:hover {
+      transform: scale(1.03);
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    #uploadSection, #qrSection {
+      display: none;
+    }
+
+    #uploadSection.show, #qrSection.show {
+      display: block;
+    }
+
+    #qrCode img {
+      width: 200px;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+    }
+
+    #saveBtn, #copyFullBtn {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: none;
+      border-radius: 12px;
+      background: white;
+      font-weight: 600;
+      position: relative;
+      margin-bottom: 0.7rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      justify-content: flex-start;
+      color: #444;
+      font-size: 0.95rem;
+      overflow-x: auto;
+      white-space: nowrap;
+      scrollbar-width: none;
+    }
+
+    #saveBtn::after, #copyFullBtn::after {
+      content: '';
+      position: absolute;
+      top: -2px; bottom: -2px; left: -2px; right: -2px;
+      border-radius: inherit;
+      background: radial-gradient(circle at top left, #ff00ff, #00ffff);
+      filter: blur(8px);
+      z-index: -1;
+      opacity: 0.6;
+    }
+
+    #copyFullBtn::-webkit-scrollbar {
+      display: none;
+    }
+
+    #copyLabel {
+      font-weight: 600;
+      color: #999;
+      flex-shrink: 0;
+    }
+
+    #fileUrl {
+      color: #333;
+    }
+
+    #loader {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      border-top: 3px solid #ff00ff;
+      border-right: 3px solid #00ffff;
+      animation: spin 0.9s linear infinite;
+      z-index: 10;
+      display: none;
+    }
+
+    @keyframes spin {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .icon {
+      width: 20px;
+      height: 20px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="loader"></div>
+
+  <div class="container">
+    <h2>Upload & Get QR and URL</h2>
+
+    <div id="uploadSection" class="show">
+      <button class="btn" onclick="selectFile('image')">
+  <div class="icon" style="background-image: url('data:image/svg+xml;utf8,<svg fill=\'%23000\' xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M21 19V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2zM8.5 12l2.5 3.01L14.5 11l4.5 6H5l3.5-5z\'/></svg>');"></div>
+  Image
+</button>
+
+<button class="btn" onclick="selectFile('video')">
+  <div class="icon" style="background-image: url('data:image/svg+xml;utf8,<svg fill=\'%23000\' xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M17 10.5V6a2 2 0 0 0-2-2H5C3.9 4 3 4.9 3 6v12c0 1.1.9 2 2 2h10a2 2 0 0 0 2-2v-4.5l4 4v-11l-4 4z\'/></svg>');"></div>
+  Video
+</button>
+
+<button class="btn" onclick="selectFile('all')">
+  <div class="icon" style="background-image: url('data:image/svg+xml;utf8,<svg fill=\'%23000\' xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M14 2H6a2 2 0 0 0-2 2v16c0 1.1.9 2 2 2h12a2 2 0 0 0 2-2V8l-6-6zM13 9V3.5L18.5 9H13z\'/></svg>');"></div>
+  Files
+</button>
+
+<button class="btn" onclick="selectFile('camera')">
+  <div class="icon" style="background-image: url('data:image/svg+xml;utf8,<svg fill=\'%23000\' xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 24 24\'><path d=\'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zm7-3h-2.586l-1.707-1.707A1 1 0 0 0 14 4h-4a1 1 0 0 0-.707.293L7.586 6H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2z\'/></svg>');"></div>
+  Camera
+</button>
+      <input type="file" id="imagePicker" accept="image/*" onchange="handleFile(event)">
+      <input type="file" id="videoPicker" accept="video/*" onchange="handleFile(event)">
+      <input type="file" id="allPicker" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,image/*,video/*,application/*" onchange="handleFile(event)">
+      <input type="file" id="cameraPicker" accept="image/*" capture="environment" onchange="handleFile(event)">
+
+      <hr style="height:0.9px; background-color: black; border: none;">
+      <p style="text-align: left;">&nbsp;Instructions:</p>
+      <p style="text-align: left; line-height: 2; font-weight: 1; font-family: Lucida Sanse;">
+        • Select any option from above<br>
+        • Choose your file<br>
+        • Wait for few seconds<br>
+        • Your QR & URL is ready</p>
+    </div>
+
+    <div id="qrSection">
+      <div id="qrCode"></div>
+      <button id="saveBtn" onclick="saveQR()">Save QR</button>
+      <button id="copyFullBtn" onclick="copyURL()">
+        <span id="copyLabel">copy |</span>
+        <span id="fileUrl">&lt;url&gt;</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const cloudName = "dj0azhc2q";
+    const uploadPreset = "Parth Kachariya";
+    let currentQR = "", fileUrl = "", selectedType = "";
+
+    function selectFile(type) {
+      if (type === "image") {
+        document.getElementById("imagePicker").click();
+      } else if (type === "video") {
+        document.getElementById("videoPicker").click();
+      } else if (type === "all") {
+        document.getElementById("allPicker").click();
+      } else if (type === "camera") {
+        document.getElementById("cameraPicker").click();
+      }
+    }
+
+    async function handleFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById("loader").style.display = "block";
+
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", uploadPreset);
+
+      try {
+        const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/upload`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        fileUrl = data.secure_url;
+
+        const qrRes = await fetch(`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(fileUrl)}&size=200x200`);
+        currentQR = qrRes.url;
+
+        document.getElementById("qrCode").innerHTML = `<img src="${currentQR}" alt="QR Code"/>`;
+        document.getElementById("fileUrl").textContent = fileUrl;
+        document.getElementById("uploadSection").classList.remove("show");
+        document.getElementById("qrSection").classList.add("show");
+      } catch (err) {
+        alert("Upload failed. Try again.");
+      } finally {
+        document.getElementById("loader").style.display = "none";
+      }
+    }
+
+    function saveQR() {
+      const link = document.createElement("a");
+      link.href = currentQR;
+      link.download = "qr.png";
+      link.click();
+    }
+
+    function copyURL() {
+      navigator.clipboard.writeText(fileUrl).then(() => {
+        alert("URL copied!");
+      });
+    }
+  </script>
+</body>
+</html>

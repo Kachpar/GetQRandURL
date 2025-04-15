@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Merged Screen</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+    html, body { height: 100vh; overflow: hidden; }
+
+    body {
+      background: linear-gradient(to bottom, #d41492, #4a00e0);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      color: white;
+    }
+
+    .line {
+      position: absolute;
+      width: 200%;
+      height: 120px;
+      background: linear-gradient(90deg, #1e3c72, #2a5298);
+      transform: rotate(-30deg);
+      opacity: 0;
+      animation: slideIn 1s forwards;
+    }
+
+    .line1 { top: -50px; left: -100px; animation-delay: 0.2s; }
+    .line2 { top: 60px; left: -100px; animation-delay: 0.4s; }
+
+    @keyframes slideIn {
+      from { transform: translateX(-100%) rotate(-30deg); opacity: 0; }
+      to { transform: translateX(0) rotate(-30deg); opacity: 0.3; }
+    }
+
+    @keyframes slideOut {
+      to {
+        transform: translateY(-100%);
+        opacity: 0;
+      }
+    }
+
+    .form-content.slide-out {
+      animation: slideOut 0.6s ease forwards;
+    }
+
+    .text {
+      font-size: 2.5em;
+      font-weight: 900;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.5);
+      animation: popUp 0.6s ease-out 1s forwards;
+      z-index: 2;
+    }
+
+    @keyframes popUp {
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .button {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%) scale(0.8);
+      background: linear-gradient(to right, #ff69b4, #ff8cc6);
+      padding: 15px 40px;
+      border: none;
+      color: white;
+      font-size: 1.2em;
+      border-radius: 30px;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(255, 105, 180, 0.4);
+      z-index: 2;
+      opacity: 0;
+      animation: fadeInBtn 0.6s ease-out 2s forwards;
+    }
+
+    @keyframes fadeInBtn {
+      to { opacity: 1; transform: translateX(-50%) scale(1); }
+    }
+
+    .form-screen {
+      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #ffeb00 50%, #a259ff 50%);
+      z-index: 3;
+      padding: 20px;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .corner-circle {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      background-color: #6b4eff;
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .top-right { top: -50px; right: -50px; }
+    .bottom-left { bottom: -50px; left: -50px; }
+
+    .form-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 { font-size: 28px; font-weight: bold; margin-bottom: 10px; color: #000; }
+    p { font-size: 14px; color: #333; margin-bottom: 20px; }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 5px;
+      border: 2px solid #999;
+      border-radius: 10px;
+      outline: none;
+      background-color: #f4f4f4;
+    }
+
+    input:focus, select:focus {
+      background-color: #d6ffd6;
+      border-color: #00c851;
+    }
+
+    .error { border-color: red; }
+    .error-message {
+      font-size: 12px;
+      color: red;
+      margin-bottom: 10px;
+      display: none;
+    }
+    .error-visible { display: block; }
+
+    .phone-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+
+    .phone-row select { width: 30%; text-align: center; }
+    .phone-row input { width: 70%; }
+
+    .fancy-submit-button {
+      position: relative;
+      padding: 12px 30px;
+      background-color: #111;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      cursor: pointer;
+      z-index: 1;
+      overflow: hidden;
+      width: 100%;
+      margin-top: 20px;
+      visibility: hidden;
+    }
+
+    .fancy-submit-button::before {
+      content: "";
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(60deg, #00f0ff, #ff00f0, #00f0ff);
+      background-size: 300% 300%;
+      animation: waterFlow 5s linear infinite;
+      z-index: 0;
+      filter: blur(8px);
+    }
+
+    .fancy-submit-button::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      right: 2px;
+      bottom: 2px;
+      background: #111;
+      border-radius: 10px;
+      z-index: 1;
+    }
+
+    .fancy-submit-button span {
+      position: relative;
+      z-index: 2;
+    }
+
+    .fancy-submit-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    @keyframes waterFlow {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 80px;
+      font-size: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #ffffff;
+      color: #000000;
+      padding: 10px 16px;
+      border-radius: 25px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 9999;
+      white-space: nowrap;
+    }
+
+    .toast.show { opacity: 1; }
+
+    .loader-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.05);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 9998;
+    }
+
+    .rotating-circle {
+      width: 40px;
+      height: 40px;
+      border: 4px solid transparent;
+      border-top: 4px solid #00f0ff;
+      border-right: 4px solid #ff00f0;
+      border-radius: 50%;
+      animation: rotate 1s linear infinite;
+      box-shadow: 0 0 2px #00f0ff, 0 0 2px #ff00f0 inset;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script> emailjs.init("Mk4dJzDHZkTGjDCT6"); </script>
+</head>
+<body>
+
+  <div class="line line1"></div>
+  <div class="line line2"></div>
+  <div class="text">Welcome to<br>Parth's App</div>
+  <button class="button" id="continueBtn">Continue</button>
+
+  <div class="form-screen" id="formScreen">
+    <div class="corner-circle top-right"></div>
+    <div class="corner-circle bottom-left"></div>
+
+    <div class="form-content">
+      <h2>Create Your Account</h2>
+      <p>Enter Details</p>
+      <form id="contactForm">
+        <input type="text" id="name" placeholder="Name"/>
+        <div class="error-message" id="nameError">Name must be at least 2 characters.</div>
+
+        <input type="email" id="email" placeholder="Email"/>
+        <div class="error-message" id="emailError">Enter a valid email address.</div>
+
+        <div class="phone-row">
+          <select id="countryCode">
+            <option value="+91" selected>+91</option>
+          </select>
+          <input type="text" id="phone" placeholder="Phone" maxlength="11"/>
+        </div>
+        <div class="error-message" id="phoneError">This is not a valid number</div>
+
+        <button type="submit" class="fancy-submit-button" id="submitBtn" disabled><span>Log in</span></button>
+      </form>
+    </div>
+  </div>
+
+  <div class="loader-overlay" id="loaderOverlay">
+    <div class="rotating-circle"></div>
+  </div>
+
+  <div id="toast" class="toast">Form submitted !</div>
+
+  <script>
+    document.getElementById("continueBtn").addEventListener("click", () => {
+      document.querySelector(".text").style.display = "none";
+      document.querySelector(".button").style.display = "none";
+      document.querySelector(".line1").style.display = "none";
+      document.querySelector(".line2").style.display = "none";
+      document.body.style.background = "unset";
+      document.getElementById("formScreen").style.display = "flex";
+    });
+
+    const nameInput = document.getElementById("name");
+    const emailInput = document.getElementById("email");
+    const phoneInput = document.getElementById("phone");
+    const countryCode = document.getElementById("countryCode");
+    const form = document.getElementById("contactForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    function toggleError(field, showError) {
+      const input = document.getElementById(field);
+      const error = document.getElementById(field + "Error");
+      if (showError) {
+        input.classList.add("error");
+        error.classList.add("error-visible");
+      } else {
+        input.classList.remove("error");
+        error.classList.remove("error-visible");
+      }
+    }
+
+    phoneInput.addEventListener("input", () => {
+      let raw = phoneInput.value.replace(/\D/g, "");
+      if (raw.length > 10) raw = raw.slice(0, 10);
+      if (raw.length > 5) {
+        phoneInput.value = raw.slice(0, 5) + " " + raw.slice(5);
+      } else {
+        phoneInput.value = raw;
+      }
+
+      if (raw.length === 10) phoneInput.blur();
+
+      if (raw.length > 0 && !/^[6-9]/.test(raw)) {
+        toggleError("phone", true);
+      } else {
+        toggleError("phone", false);
+      }
+
+      validateForm();
+    });
+
+    phoneInput.addEventListener("blur", () => {
+      const val = phoneInput.value.replace(/\D/g, "");
+      if (val !== "") {
+        toggleError("phone", !(val.length === 10 && /^[6-9]/.test(val)));
+      } else {
+        toggleError("phone", false);
+      }
+    });
+
+    nameInput.addEventListener("input", validateForm);
+    emailInput.addEventListener("input", () => {
+      validateForm();
+      if (emailInput.value.includes(".com")) {
+        phoneInput.focus();
+      }
+    });
+
+    nameInput.addEventListener("blur", () => {
+      if (nameInput.value.trim() !== "") {
+        toggleError("name", nameInput.value.trim().length < 2);
+      }
+    });
+
+    emailInput.addEventListener("blur", () => {
+      if (emailInput.value.trim() !== "") {
+        const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+        toggleError("email", !valid);
+      }
+    });
+
+    [nameInput, emailInput, phoneInput].forEach((input, index, arr) => {
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          if (index < arr.length - 1) {
+            arr[index + 1].focus();
+          }
+        }
+      });
+    });
+
+    function validateForm() {
+      const nameVal = nameInput.value.trim();
+      const emailVal = emailInput.value.trim();
+      const phoneVal = phoneInput.value.replace(/\D/g, "");
+
+      const nameValid = nameVal.length >= 2;
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+      const phoneValid = phoneVal.length === 10 && /^[6-9]/.test(phoneVal);
+
+      if (nameVal || emailVal || phoneVal) {
+        submitBtn.style.visibility = "visible";
+      } else {
+        submitBtn.style.visibility = "hidden";
+      }
+
+      submitBtn.disabled = !(nameValid && emailValid && phoneValid);
+    }
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const nameVal = nameInput.value.trim();
+      const emailVal = emailInput.value.trim();
+      const phoneVal = phoneInput.value.replace(/\D/g, "");
+      const codeVal = countryCode.value;
+
+      const nameValid = nameVal.length >= 2;
+      const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal);
+      const phoneValid = phoneVal.length === 10 && /^[6-9]/.test(phoneVal);
+
+      toggleError("name", !nameValid);
+      toggleError("email", !emailValid);
+      toggleError("phone", !phoneValid);
+
+      if (nameValid && emailValid && phoneValid) {
+        document.getElementById("loaderOverlay").style.display = "flex";
+
+        const templateParams = {
+          name: nameVal,
+          email: emailVal,
+          phone: codeVal + " " + phoneVal,
+          message: "New form submission"
+        };
+
+        emailjs.send("Parth", "template_6p6xz3i", templateParams)
+          .then(() => {
+            const toast = document.getElementById("toast");
+            toast.classList.add("show");
+
+            document.querySelector(".form-content").classList.add("slide-out");
+
+            setTimeout(() => {
+              window.location.href = "process.html";
+            }, 600);
+          }, function(error) {
+            alert("Form submit failed: " + error.text);
+            document.getElementById("loaderOverlay").style.display = "none";
+          });
+      }
+    });
+  </script>
+</body>
+</html>
